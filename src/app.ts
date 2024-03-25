@@ -4,7 +4,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import {
   DEFAULT_MONGO_DB_NAME, DEFAULT_MONGO_DB_PATH, DEFAULT_PORT, DEFAULT_USER_ID,
 } from './utils/constants';
-import UserRoute from './controllers/users';
+import userRoutes from './routes/userRoutes';
+import cardRoutes from './routes/cardRoutes';
 import { MyRequest } from './utils/types';
 import { STATUS_CODES } from './utils/errors';
 
@@ -18,6 +19,8 @@ mongoose.connect(db)
   .then(() => console.log('Подключение к MongoDB успешно установлено'))
   .catch((error) => console.error('Ошибка подключения к MongoDB:', error));
 
+app.use(express.json());
+
 app.use((req: MyRequest, res: Response, next: NextFunction) => {
   req.user = {
     _id: DEFAULT_USER_ID,
@@ -25,19 +28,9 @@ app.use((req: MyRequest, res: Response, next: NextFunction) => {
   next();
 });
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Привет, мир!');
-});
+app.use(userRoutes);
 
-app.use(UserRoute);
-
-app.get('/about', (req: Request, res: Response) => {
-  res.send('О нас');
-});
-
-app.get('/contact', (req: Request, res: Response) => {
-  res.send('Контакты');
-});
+app.use(cardRoutes);
 
 app.use((err: any, req: Request, res: Response) => {
   res.status(err.status || STATUS_CODES.INTERNAL_SERVER_ERROR);

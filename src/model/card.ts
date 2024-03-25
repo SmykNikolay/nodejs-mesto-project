@@ -21,7 +21,7 @@ const cardSchema = new Schema<ICard>({
   },
   owner: {
     type: Schema.Types.ObjectId,
-    required: true,
+    // required: true,
   },
   likes: {
     type: [Schema.Types.ObjectId],
