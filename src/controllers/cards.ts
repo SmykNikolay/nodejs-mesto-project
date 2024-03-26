@@ -15,9 +15,14 @@ export async function getAllCards(_req:Request, res:Response) {
 export async function createCard(req:Request, res:Response) {
   try {
     const card = await Card.create(req.body);
-    res.status(STATUS_CODES.CREATED).send(card);
+    return res.status(STATUS_CODES.CREATED).send(card);
   } catch (err) {
-    res.status(STATUS_CODES.BAD_REQUEST).send({ message: ERROR_MESSAGES.INVALID_CARD_DATA });
+    if ((err as Error).name === 'ValidationError') {
+      return res.status(STATUS_CODES.BAD_REQUEST)
+        .send({ message: ERROR_MESSAGES.INVALID_CARD_DATA });
+    }
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR)
+      .send({ message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR });
   }
 }
 
@@ -29,7 +34,11 @@ export async function getCard(req:Request, res:Response) {
     }
     return res.send(card);
   } catch (err) {
-    return res.status(STATUS_CODES.BAD_REQUEST).send({ message: ERROR_MESSAGES.INVALID_ID });
+    if ((err as Error).name === 'CastError') {
+      return res.status(STATUS_CODES.BAD_REQUEST).send({ message: ERROR_MESSAGES.INVALID_ID });
+    }
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR)
+      .send({ message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR });
   }
 }
 
@@ -41,7 +50,11 @@ export async function deleteCard(req:Request, res:Response) {
     }
     return res.send(card);
   } catch (err) {
-    return res.status(STATUS_CODES.BAD_REQUEST).send({ message: ERROR_MESSAGES.INVALID_ID });
+    if ((err as Error).name === 'CastError') {
+      return res.status(STATUS_CODES.BAD_REQUEST).send({ message: ERROR_MESSAGES.INVALID_ID });
+    }
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR)
+      .send({ message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR });
   }
 }
 
@@ -61,7 +74,11 @@ export async function likeCard(req:MyRequest, res:Response) {
     }
     return res.send(card);
   } catch (err) {
-    return res.status(STATUS_CODES.BAD_REQUEST).send({ message: ERROR_MESSAGES.INVALID_LIKE_DATA });
+    if ((err as Error).name === 'CastError') {
+      return res.status(STATUS_CODES.BAD_REQUEST)
+        .send({ message: ERROR_MESSAGES.INVALID_LIKE_DATA });
+    }
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR);
   }
 }
 
@@ -81,6 +98,10 @@ export async function dislikeCard(req:MyRequest, res:Response) {
     }
     return res.send(card);
   } catch (err) {
-    return res.status(STATUS_CODES.BAD_REQUEST).send({ message: ERROR_MESSAGES.INVALID_LIKE_DATA });
+    if ((err as Error).name === 'CastError') {
+      return res.status(STATUS_CODES.BAD_REQUEST)
+        .send({ message: ERROR_MESSAGES.INVALID_LIKE_DATA });
+    }
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR);
   }
 }

@@ -48,7 +48,11 @@ export async function updateUserProfile(req : MyRequest, res:Response) {
       .send({ message: ERROR_MESSAGES.USER_NOT_AUTHORIZED });
   }
   try {
-    const user = await User.findByIdAndUpdate(req.user._id, req.body, { new: true });
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      req.body,
+      { new: true, runValidators: true },
+    );
     if (!user) {
       return res.status(STATUS_CODES.NOT_FOUND).send({ message: ERROR_MESSAGES.NOT_FOUND });
     }
@@ -71,7 +75,7 @@ export async function updateUserAvatar(req : MyRequest, res:Response) {
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { avatar: req.body.avatar },
-      { new: true },
+      { new: true, runValidators: true },
     );
     if (!user) {
       return res.status(STATUS_CODES.NOT_FOUND)
