@@ -1,4 +1,7 @@
 import { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
 import { MyRequest } from '../utils/types';
 import User from '../model/user';
 import { STATUS_CODES, ERROR_MESSAGES } from '../utils/errors';
@@ -27,15 +30,21 @@ export async function getUserById(req : Request, res:Response) {
       .send({ message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR });
   }
 }
-export async function createUser(req : Request, res:Response) {
+
+export async function createUser(req: Request, res: Response) {
   try {
-    const user = new User(req.body);
+    const { password, ...rest } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ password: hashedPassword, ...rest });
     await user.save();
     return res.status(STATUS_CODES.CREATED).send(user);
   } catch (err) {
     if ((err as Error).name === 'ValidationError') {
       return res.status(STATUS_CODES.BAD_REQUEST)
         .send({ message: ERROR_MESSAGES.INVALID_USER_DATA });
+    }
+    if ((err as any).code === 11000) {
+      return res.status(409).send({ message: ERROR_MESSAGES.EMAIL_EXISTS });
     }
     return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR)
       .send({ message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR });
@@ -87,6 +96,37 @@ export async function updateUserAvatar(req : MyRequest, res:Response) {
     if ((err as Error).name === 'ValidationError') {
       return res.status(STATUS_CODES.BAD_REQUEST)
         .send({ message: ERROR_MESSAGES.INVALID_AVATAR });
+    }
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR)
+      .send({ message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR });
+  }
+}
+
+export async function login(req: Request, res: Response) {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      return res.status(STATUS_CODES.UNAUTHORIZED)
+        .send({ message: ERROR_MESSAGES.INVALID_CREDENTIALS });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(STATUS_CODES.UNAUTHORIZED)
+        .send({ message: ERROR_MESSAGES.INVALID_CREDENTIALS });
+    }
+    const token = jwt.sign({ _id: user._id }, process.env.DEFAULT_SECRET_KEY || 'DEFAULT_SECRET_KEY', { expiresIn: '7d' });
+    res.cookie('jwt', token, {
+      maxAge: 3600000 * 24 * 7,
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    });
+    return res.send({ token });
+  } catch (err) {
+    if (err instanceof jwt.JsonWebTokenError) {
+      return res.status(STATUS_CODES.UNAUTHORIZED)
+        .send({ message: ERROR_MESSAGES.INVALID_TOKEN });
     }
     return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR)
       .send({ message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR });

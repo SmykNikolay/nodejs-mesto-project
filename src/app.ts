@@ -2,13 +2,18 @@
 import mongoose from 'mongoose';
 import express, { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
+import morgan from 'morgan';
+
 import {
-  DEFAULT_MONGO_DB_NAME, DEFAULT_MONGO_DB_PATH, DEFAULT_PORT, DEFAULT_USER_ID,
+  DEFAULT_MONGO_DB_NAME, DEFAULT_MONGO_DB_PATH, DEFAULT_PORT,
 } from './utils/constants';
+
 import userRoutes from './routes/userRoutes';
 import cardRoutes from './routes/cardRoutes';
-import { MyRequest } from './utils/types';
+
 import { ERROR_MESSAGES, STATUS_CODES } from './utils/errors';
+
+import { requestLogger, errorLogger } from './middlewares/logger';
 
 const app = express();
 
@@ -24,11 +29,15 @@ mongoose.connect(db)
 
 app.use(express.json());
 
-app.use((req: MyRequest, res: Response, next: NextFunction) => {
-  req.user = {
-    _id: DEFAULT_USER_ID,
-  };
-  next();
+app.use(morgan('tiny', {
+  stream: {
+    write: (message: string) => requestLogger.info(message.trim()),
+  },
+}));
+
+app.use((err: any, req: Request, _res: Response, next: NextFunction) => {
+  errorLogger.error(err);
+  next(err);
 });
 
 app.use(userRoutes);

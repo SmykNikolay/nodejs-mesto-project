@@ -41,13 +41,18 @@ export async function getCard(req:Request, res:Response) {
       .send({ message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR });
   }
 }
-
-export async function deleteCard(req:Request, res:Response) {
+export async function deleteCard(req: MyRequest, res: Response) {
   try {
-    const card = await Card.findByIdAndDelete(req.params.cardId);
+    const card = await Card.findById(req.params.cardId);
     if (!card) {
       return res.status(STATUS_CODES.NOT_FOUND).send({ message: ERROR_MESSAGES.CARD_NOT_FOUND });
     }
+    if (req.user === undefined
+      || req.user._id === undefined
+      || !(card.owner as any).equals(req.user._id)) {
+      return res.status(403).send({ message: ERROR_MESSAGES.FORBIDDEN });
+    }
+    await card.remove();
     return res.send(card);
   } catch (err) {
     if ((err as Error).name === 'CastError') {

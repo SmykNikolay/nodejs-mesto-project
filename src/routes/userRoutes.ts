@@ -1,13 +1,18 @@
 import express from 'express';
 import * as userController from '../controllers/users';
+import auth from '../middlewares/auth';
 
 const router = express.Router();
+
+router.post('/signin', userController.login);
+
+router.post('/signup', userController.createUser);
+
+router.use(auth);
 
 router.get('/users', userController.getAllUsers);
 
 router.get('/users/:userId', userController.getUserById);
-
-router.post('/users', userController.createUser);
 
 router.patch('/users/me', userController.updateUserProfile);
 
