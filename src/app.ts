@@ -3,7 +3,9 @@ import mongoose from 'mongoose';
 import express, { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { errors } from 'celebrate';
 
+import { IError } from './utils/types';
 import {
   DEFAULT_MONGO_DB_NAME, DEFAULT_MONGO_DB_PATH, DEFAULT_PORT,
 } from './utils/constants';
@@ -44,16 +46,19 @@ app.use(userRoutes);
 
 app.use(cardRoutes);
 
+app.use(errors());
+
 app.use('*', (req, res, next) => {
   next(new NotFoundError(ERROR_MESSAGES.NOT_FOUND));
 });
 
-app.use((err: any, req: Request, res: Response) => {
+app.use((err: IError, req: Request, res: Response, next: NextFunction) => {
   res
     .status(err.status || STATUS_CODES.INTERNAL_SERVER_ERROR)
     .json({
       message: err.message,
     });
+  next();
 });
 
 app.listen(DEFAULT_PORT, () => {

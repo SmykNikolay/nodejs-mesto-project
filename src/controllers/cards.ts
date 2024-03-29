@@ -6,32 +6,33 @@ import {
   ForbiddenError,
   NotFoundError,
   BadRequestError,
-  InternalServerError,
+
 } from '../utils/errors';
 import Card from '../model/card';
 import { MyRequest } from '../utils/types';
 
-export async function getAllCards(_req:Request, res:Response, next: NextFunction) {
+export async function getAllCards(_req: Request, res: Response, next: NextFunction) {
   try {
     const cards = await Card.find();
     res.send(cards);
   } catch (err) {
-    next(new InternalServerError(ERROR_MESSAGES.INTERNAL_SERVER_ERROR));
+    next(err);
   }
 }
 
-export async function createCard(req:Request, res:Response, next: NextFunction) {
+export async function createCard(req: MyRequest, res: Response, next: NextFunction) {
   try {
-    const card = await Card.create(req.body);
+    const card = await Card.create({ ...req.body, owner: req.user?._id });
     return res.status(STATUS_CODES.CREATED).send(card);
   } catch (err) {
     if ((err as Error).name === 'ValidationError') {
       return next(new BadRequestError(ERROR_MESSAGES.INVALID_CARD_DATA));
     }
-    return next(new InternalServerError(ERROR_MESSAGES.INTERNAL_SERVER_ERROR));
+    return next(err);
   }
 }
-export async function getCard(req:Request, res:Response, next: NextFunction) {
+
+export async function getCard(req: Request, res: Response, next: NextFunction) {
   try {
     const card = await Card.findById(req.params.cardId);
     if (!card) {
@@ -42,7 +43,7 @@ export async function getCard(req:Request, res:Response, next: NextFunction) {
     if ((err as Error).name === 'CastError') {
       return next(new BadRequestError(ERROR_MESSAGES.INVALID_ID));
     }
-    return next(new InternalServerError(ERROR_MESSAGES.INTERNAL_SERVER_ERROR));
+    return next(err);
   }
 }
 
@@ -67,7 +68,7 @@ export async function deleteCard(req: MyRequest, res: Response, next: NextFuncti
   }
 }
 
-export async function likeCard(req:MyRequest, res:Response, next: NextFunction) {
+export async function likeCard(req: MyRequest, res: Response, next: NextFunction) {
   try {
     if (req.user === undefined || req.user._id === undefined) {
       throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_AUTHORIZED);
@@ -89,7 +90,7 @@ export async function likeCard(req:MyRequest, res:Response, next: NextFunction) 
   }
 }
 
-export async function dislikeCard(req:MyRequest, res:Response, next: NextFunction) {
+export async function dislikeCard(req: MyRequest, res: Response, next: NextFunction) {
   try {
     if (req.user === undefined || req.user._id === undefined) {
       throw new UnauthorizedError(ERROR_MESSAGES.USER_NOT_AUTHORIZED);

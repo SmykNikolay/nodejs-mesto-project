@@ -8,7 +8,7 @@ import {
   UnauthorizedError,
   NotFoundError,
   BadRequestError,
-  InternalServerError,
+
   ConflictError,
 } from '../utils/errors';
 
@@ -23,7 +23,7 @@ export async function getAllUsers(_req : Request, res:Response, next: NextFuncti
     const users = await User.find({});
     res.send(users);
   } catch (err) {
-    next(new InternalServerError(ERROR_MESSAGES.INTERNAL_SERVER_ERROR));
+    next(err);
   }
 }
 
@@ -38,8 +38,9 @@ export async function getUserById(req : Request, res:Response, next: NextFunctio
   } catch (err) {
     if ((err as Error).name === 'CastError') {
       next(new BadRequestError(ERROR_MESSAGES.INVALID_USER_ID));
+    } else {
+      next(err);
     }
-    next(new InternalServerError(ERROR_MESSAGES.INTERNAL_SERVER_ERROR));
   }
 }
 
@@ -49,14 +50,16 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ password: hashedPassword, ...rest });
     await user.save();
-    return res.status(STATUS_CODES.CREATED).send(user);
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    return res.status(STATUS_CODES.CREATED).send(userResponse);
   } catch (err) {
     if ((err as any).code === 11000) {
       return next(new ConflictError(ERROR_MESSAGES.EMAIL_EXISTS));
     } if ((err as Error).name === 'ValidationError') {
       return next(new BadRequestError(ERROR_MESSAGES.INVALID_USER_DATA));
     }
-    return next(new InternalServerError(ERROR_MESSAGES.INTERNAL_SERVER_ERROR));
+    return next(err);
   }
 }
 
@@ -80,7 +83,7 @@ export async function updateUserProfile(req: MyRequest, res: Response, next: Nex
     if ((err as Error).name === 'ValidationError') {
       next(new BadRequestError(ERROR_MESSAGES.INVALID_USER_DATA_UPDATE));
     } else {
-      next(new InternalServerError(ERROR_MESSAGES.INTERNAL_SERVER_ERROR));
+      next(err);
     }
   }
 }
@@ -105,7 +108,7 @@ export async function updateUserAvatar(req: MyRequest, res: Response, next: Next
     if ((err as Error).name === 'ValidationError') {
       next(new BadRequestError(ERROR_MESSAGES.INVALID_AVATAR));
     } else {
-      next(new InternalServerError(ERROR_MESSAGES.INTERNAL_SERVER_ERROR));
+      next(err);
     }
   }
 }
@@ -133,7 +136,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     if (err instanceof jwt.JsonWebTokenError) {
       return next(new UnauthorizedError(ERROR_MESSAGES.INVALID_TOKEN));
     }
-    return next(new InternalServerError(ERROR_MESSAGES.INTERNAL_SERVER_ERROR));
+    return next(err);
   }
 }
 
@@ -150,6 +153,6 @@ export async function getCurrentUser(req: MyRequest, res: Response, next: NextFu
     }
     res.send(user);
   } catch (err) {
-    next(new InternalServerError(ERROR_MESSAGES.INTERNAL_SERVER_ERROR));
+    next(err);
   }
 }

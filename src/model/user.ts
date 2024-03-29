@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import validator from 'validator';
-import uniqueValidator from 'mongoose-unique-validator';
 
 interface IUser extends Document {
   name: string;
@@ -48,7 +47,6 @@ const userSchema = new Schema<IUser>({
 }, {
   versionKey: false,
 });
-userSchema.plugin(uniqueValidator, { message: 'Пользователь с таким email уже существует' });
 
 const User = mongoose.model<IUser>('User', userSchema);
 
