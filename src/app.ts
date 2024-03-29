@@ -11,7 +11,7 @@ import {
 import userRoutes from './routes/userRoutes';
 import cardRoutes from './routes/cardRoutes';
 
-import { ERROR_MESSAGES, STATUS_CODES } from './utils/errors';
+import { ERROR_MESSAGES, NotFoundError, STATUS_CODES } from './utils/errors';
 
 import { requestLogger, errorLogger } from './middlewares/logger';
 
@@ -44,14 +44,14 @@ app.use(userRoutes);
 
 app.use(cardRoutes);
 
-app.use('*', (req, res) => {
-  res.status(STATUS_CODES.NOT_FOUND).send({ message: ERROR_MESSAGES.NOT_FOUND });
+app.use('*', (req, res, next) => {
+  next(new NotFoundError(ERROR_MESSAGES.NOT_FOUND));
 });
 
 app.use((err: any, req: Request, res: Response) => {
   res
     .status(err.status || STATUS_CODES.INTERNAL_SERVER_ERROR)
-    .send({
+    .json({
       message: err.message,
     });
 });

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
+import { ERROR_MESSAGES, UnauthorizedError } from '../utils/errors';
 import { DEFAULT_SECRET_KEY } from '../utils/constants';
 
 interface MyRequest extends Request {
@@ -10,7 +11,8 @@ interface MyRequest extends Request {
 export default (req: MyRequest, res: Response, next: NextFunction) => {
   const { authorization } = req.headers;
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    return res.status(401).send({ message: 'Необходима авторизация' });
+    next(new UnauthorizedError(ERROR_MESSAGES.INVALID_AUTHORIZATION));
+    return;
   }
   const token = authorization.replace('Bearer ', '');
 
@@ -22,8 +24,8 @@ export default (req: MyRequest, res: Response, next: NextFunction) => {
       throw new Error();
     }
   } catch (err) {
-    return res.status(401).send({ message: 'Необходима авторизация' });
+    next(new UnauthorizedError(ERROR_MESSAGES.INVALID_AUTHORIZATION));
+    return;
   }
-
-  return next();
+  next();
 };

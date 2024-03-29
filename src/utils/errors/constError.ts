@@ -1,9 +1,6 @@
 export const STATUS_CODES = {
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500,
-  BAD_REQUEST: 400,
   CREATED: 201,
-  UNAUTHORIZED: 401,
+  INTERNAL_SERVER_ERROR: 500,
 };
 
 export const ERROR_MESSAGES = {
@@ -24,4 +21,5 @@ export const ERROR_MESSAGES = {
   FORBIDDEN: 'Недостаточно прав для выполнения операции',
   INVALID_TOKEN: 'Некорректный токен',
   EMAIL_EXISTS: 'Пользователь с таким email уже существует',
+  INVALID_AUTHORIZATION: 'Необходима авторизация',
 };
