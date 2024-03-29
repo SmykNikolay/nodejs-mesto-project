@@ -39,7 +39,7 @@ export const updateUserProfileValidation = celebrate({
 
 export const cardIdValidation = celebrate({
   [Segments.PARAMS]: Joi.object().keys({
-    cardId: Joi.string().required(),
+    cardId: Joi.string().length(24).hex().required(),
   }),
 });
 
@@ -52,6 +52,6 @@ export const createCardValidation = celebrate({
 
 export const likeCardValidation = celebrate({
   [Segments.PARAMS]: Joi.object().keys({
-    cardId: Joi.string().required(),
+    cardId: Joi.string().length(24).hex().required(),
   }),
 });
