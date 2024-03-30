@@ -16,7 +16,7 @@ export const signUpValidation = celebrate({
 
 export const userIdValidation = celebrate({
   [Segments.PARAMS]: Joi.object().keys({
-    userId: Joi.string().required(),
+    userId: Joi.string().length(24).hex().required(),
   }),
 });
 
@@ -32,9 +32,6 @@ export const updateUserProfileValidation = celebrate({
     about: Joi.string().min(2).max(200),
     avatar: Joi.string().uri(),
   }),
-  [Segments.PARAMS]: Joi.object().keys({
-    userId: Joi.string().required(),
-  }),
 });
 
 export const cardIdValidation = celebrate({
@@ -47,11 +44,5 @@ export const createCardValidation = celebrate({
   [Segments.BODY]: Joi.object().keys({
     name: Joi.string().min(2).max(30).required(),
     link: Joi.string().uri().required(),
-  }),
-});
-
-export const likeCardValidation = celebrate({
-  [Segments.PARAMS]: Joi.object().keys({
-    cardId: Joi.string().length(24).hex().required(),
   }),
 });

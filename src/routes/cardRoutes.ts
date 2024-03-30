@@ -13,7 +13,7 @@ router.get('/cards/:cardId', validate.cardIdValidation, cardController.getCard);
 
 router.delete('/cards/:cardId', validate.cardIdValidation, cardController.deleteCard);
 
-router.put('/cards/:cardId/likes', validate.likeCardValidation, cardController.likeCard);
+router.put('/cards/:cardId/likes', validate.cardIdValidation, cardController.likeCard);
 
 router.delete('/cards/:cardId/likes', validate.cardIdValidation, cardController.dislikeCard);
 
