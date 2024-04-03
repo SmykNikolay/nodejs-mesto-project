@@ -1,4 +1,3 @@
-// src/routes/cardRoutes.ts
 import express from 'express';
 import * as cardController from '../controllers/cards';
 import * as validate from '../middlewares/validation';
